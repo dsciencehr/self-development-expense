@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>자기계발비 잔액 조회</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #F7F8FA;
+    --surface: #FFFFFF;
+    --border: #E8EAF0;
+    --text-primary: #1A1D27;
+    --text-secondary: #6B7080;
+    --text-muted: #9EA5B5;
+    --accent: #2D5BE3;
+    --accent-light: #EBF0FF;
+    --success: #12B981;
+    --success-light: #ECFDF5;
+    --warning: #F59E0B;
+    --warning-light: #FFFBEB;
+    --danger: #EF4444;
+    --danger-light: #FEF2F2;
+  }
+
+  body {
+    font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+    background: var(--bg);
+    color: var(--text-primary);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 48px 16px;
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+  .header-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 12px;
+  }
+  .header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+    margin-bottom: 8px;
+  }
+  .header p {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+
+  /* Search Card */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    width: 100%;
+    max-width: 480px;
+    margin-bottom: 24px;
+  }
+
+  .field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .field label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    letter-spacing: 0.04em;
+    margin-bottom: 8px;
+  }
+
+  .field input {
+    width: 100%;
+    height: 48px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 0 16px;
+    font-size: 15px;
+    color: var(--text-primary);
+    background: var(--bg);
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .field input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(45, 91, 227, 0.1);
+    background: #fff;
+  }
+  .field input::placeholder { color: var(--text-muted); }
+
+  .btn {
+    width: 100%;
+    height: 50px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+    letter-spacing: -0.01em;
+  }
+  .btn:hover { background: #2450c8; }
+  .btn:active { transform: scale(0.99); }
+  .btn:disabled { background: var(--border); color: var(--text-muted); cursor: not-allowed; }
+
+  /* Sheet URL Input */
+  .sheet-setup {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px 32px;
+    width: 100%;
+    max-width: 480px;
+    margin-bottom: 24px;
+  }
+  .sheet-setup summary {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .sheet-setup summary::before { content: '⚙️'; }
+  .sheet-setup[open] summary { margin-bottom: 16px; }
+  .sheet-setup .field input { font-size: 13px; }
+  .sheet-setup .hint {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 8px;
+    line-height: 1.6;
+  }
+  .btn-sm {
+    margin-top: 12px;
+    height: 38px;
+    font-size: 13px;
+    border-radius: 8px;
+  }
+
+  /* Result Card */
+  .result-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    width: 100%;
+    max-width: 480px;
+    display: none;
+  }
+  .result-card.show { display: block; }
+
+  .result-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .result-name { font-size: 20px; font-weight: 700; letter-spacing: -0.02em; }
+  .result-meta { font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
+  .result-badge {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 20px;
+    background: var(--accent-light);
+    color: var(--accent);
+  }
+
+  /* Balance Highlight */
+  .balance-highlight {
+    background: var(--bg);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .balance-label { font-size: 13px; color: var(--text-secondary); font-weight: 500; }
+  .balance-amount { font-size: 26px; font-weight: 700; letter-spacing: -0.03em; }
+  .balance-amount.good { color: var(--success); }
+  .balance-amount.warn { color: var(--warning); }
+  .balance-amount.zero { color: var(--danger); }
+
+  /* Stats Grid */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .stat-item {
+    padding: 14px 16px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+  }
+  .stat-label { font-size: 11px; color: var(--text-muted); font-weight: 500; margin-bottom: 6px; }
+  .stat-value { font-size: 17px; font-weight: 700; letter-spacing: -0.02em; }
+
+  /* Usage Bar */
+  .usage-bar-wrap { margin-bottom: 20px; }
+  .usage-bar-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+  }
+  .usage-bar-track {
+    height: 8px;
+    background: var(--bg);
+    border-radius: 99px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .usage-bar-fill {
+    height: 100%;
+    border-radius: 99px;
+    transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  /* Monthly Grid */
+  .monthly-section { margin-top: 4px; }
+  .monthly-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    letter-spacing: 0.04em;
+    margin-bottom: 12px;
+  }
+  .monthly-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 6px;
+  }
+  .month-cell {
+    text-align: center;
+    padding: 8px 4px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+  }
+  .month-cell .m-label { font-size: 10px; color: var(--text-muted); margin-bottom: 4px; }
+  .month-cell .m-value { font-size: 11px; font-weight: 600; color: var(--text-primary); }
+  .month-cell.has-data { background: var(--accent-light); border-color: rgba(45,91,227,0.2); }
+  .month-cell.has-data .m-value { color: var(--accent); }
+
+  /* Note */
+  .result-note {
+    margin-top: 16px;
+    padding: 12px 14px;
+    background: var(--warning-light);
+    border-radius: 8px;
+    font-size: 12px;
+    color: #92400E;
+    line-height: 1.6;
+  }
+
+  /* Error / Loading */
+  .msg {
+    text-align: center;
+    padding: 24px;
+    font-size: 14px;
+  }
+  .msg.error { color: var(--danger); }
+  .msg.loading { color: var(--text-secondary); }
+
+  /* Footer */
+  .footer {
+    margin-top: 40px;
+    font-size: 12px;
+    color: var(--text-muted);
+    text-align: center;
+  }
+
+  /* 사용가능시기 배너 */
+  .avail-notice {
+    background: var(--warning-light);
+    border: 1px solid #FDE68A;
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 13px;
+    color: #92400E;
+    margin-bottom: 16px;
+    line-height: 1.5;
+  }
+  .avail-notice strong {
+    color: #B45309;
+  }
+
+  @media (max-width: 480px) {
+    body { padding: 32px 12px; }
+    .card, .result-card, .sheet-setup { padding: 24px 20px; }
+    .monthly-grid { grid-template-columns: repeat(4, 1fr); }
+    .balance-amount { font-size: 22px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-label">동아사이언스 · 인재지원팀</div>
+  <h1>자기계발비 잔액 조회</h1>
+  <p>사번과 입사일을 입력하시면<br>2026년 자기계발비 현황을 확인하실 수 있습니다.</p>
+</div>
+
+
+
+<!-- 조회 카드 -->
+<div class="card">
+  <div class="field-group">
+    <div class="field">
+      <label>사번</label>
+      <input type="text" id="inputId" placeholder="예: S2025213" maxlength="20" />
+    </div>
+    <div class="field">
+      <label>입사일 <span style="font-weight:400;color:var(--text-muted)">(8자리, 예: 20250101)</span></label>
+      <input type="text" id="inputJoinDate" placeholder="예: 20250101" maxlength="8" inputmode="numeric" />
+    </div>
+  </div>
+  <button class="btn" id="searchBtn" onclick="handleSearch()">잔액 조회</button>
+</div>
+
+<!-- 결과 카드 -->
+<div class="result-card" id="resultCard"></div>
+
+<div class="footer">자기계발비 관련 문의사항은 재무팀에 문의주세요.</div>
+
+<script>
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbyfDdkdavSn6ncOKQCyZ5125q5ILIbazjU4aclNvWrr1nKX_Y1SEEKdbaNP9KoyTfY7/exec';
+
+window.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('inputId').addEventListener('keydown', e => { if (e.key === 'Enter') handleSearch(); });
+  document.getElementById('inputJoinDate').addEventListener('keydown', e => { if (e.key === 'Enter') handleSearch(); });
+});
+
+// ── 샘플 데이터 (테스트용) ──
+// id = 사번 / joinDate = 입사일 8자리 / dept = 부서 / rank = 직급
+// limit = 직급별 자기계발비 / paid = 2026년 실지급액 / monthly = 월별 사용액
+const SAMPLE_DATA = [
+  { id: 'S2025216', joinDate: '20251229', dept: '과학동아팀', rank: '사원', limit: 1200000, paid: 10000, note: '', monthly: {} },
+  { id: 'S2025215', joinDate: '20250908', dept: '판콘플래닛파트', rank: '대리', limit: 1500000, paid: 470833, note: '', monthly: {} },
+  { id: 'S2025214', joinDate: '20250901', dept: '지구사랑탐사대파트', rank: '사원', limit: 1200000, paid: 1200000, note: '', monthly: {} },
+  { id: 'S2025213', joinDate: '20250807', dept: '어린이과학동아팀', rank: '대리', limit: 1500000, paid: 1500000, note: '', monthly: { 1: 604167 } },
+  { id: 'S2025101', joinDate: '20250220', dept: '과학동아팀', rank: 'Junior+', limit: 1500000, paid: 1500000, note: '', monthly: { 6: 594900 } },
+  { id: 'S2025202', joinDate: '20250210', dept: '서비스기획팀', rank: '과장', limit: 1800000, paid: 1800000, note: '', monthly: { 5: 256300 } },
+];
+
+// ── 숫자 포맷 ──
+function fmt(n) {
+  if (!n && n !== 0) return '-';
+  return Number(n).toLocaleString('ko-KR') + '원';
+}
+
+// ── 조회 ──
+async function handleSearch() {
+  const inputId = document.getElementById('inputId').value.trim();
+  const inputJoinDate = document.getElementById('inputJoinDate').value.trim();
+  const resultCard = document.getElementById('resultCard');
+
+  if (!inputId || !inputJoinDate) {
+    alert('사번과 입사일을 모두 입력해주세요.');
+    return;
+  }
+  if (!/^\d{8}$/.test(inputJoinDate)) {
+    alert('입사일은 숫자 8자리로 입력해주세요. (예: 20250101)');
+    return;
+  }
+
+  resultCard.className = 'result-card show';
+  resultCard.innerHTML = '<div class="msg loading">조회 중…</div>';
+
+  let data = null;
+
+  try {
+      const url = `${SHEET_URL}?id=${encodeURIComponent(inputId)}&joinDate=${encodeURIComponent(inputJoinDate)}`;
+      const res = await fetch(url);
+      const json = await res.json();
+      if (json.status === 'ok') data = json.data;
+      else {
+        resultCard.innerHTML = `<div class="msg error">❌ ${json.message || '일치하는 정보를 찾을 수 없습니다.'}</div>`;
+        return;
+      }
+  } catch (e) {
+      resultCard.innerHTML = `<div class="msg error">❌ 구글 시트 연결에 실패했습니다.<br><small>${e.message}</small></div>`;
+      return;
+  }
+
+  renderResult(data);
+}
+
+function renderResult(d) {
+  const resultCard = document.getElementById('resultCard');
+  // 월별 합산으로 총 사용액 계산
+  const monthly = d.monthly || {};
+  d.used = Object.values(monthly).reduce((sum, v) => sum + (Number(v) || 0), 0);
+  d.balance = (d.paid || 0) - d.used;
+
+  const usedPct = d.paid > 0 ? Math.min(100, Math.round((d.used / d.paid) * 100)) : 0;
+  const balancePct = 100 - usedPct;
+
+  let balanceClass = 'good';
+  if (balancePct <= 10) balanceClass = 'zero';
+  else if (balancePct <= 30) balanceClass = 'warn';
+
+  // 월별 사용 내역
+  const months = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+  const monthlyHtml = months.map((m, i) => {
+    const val = monthly[i+1];
+    const hasData = val && val > 0;
+    return `<div class="month-cell ${hasData ? 'has-data' : ''}">
+      <div class="m-label">${m}</div>
+      <div class="m-value">${hasData ? (val/10000).toFixed(0)+'만' : '-'}</div>
+    </div>`;
+  }).join('');
+
+  // ── 사용가능시기 계산 (입사 1년 후) ──
+  const joinDateStr = d.joinDate || '';  // YYYYMMDD
+  let availableHtml = '';
+  if (joinDateStr && joinDateStr.length === 8) {
+    const jy = parseInt(joinDateStr.slice(0, 4));
+    const jm = parseInt(joinDateStr.slice(4, 6));
+    const jd = parseInt(joinDateStr.slice(6, 8));
+    const availDate = new Date(jy + 1, jm - 1, jd);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (availDate > today) {
+      const ay = availDate.getFullYear();
+      const am = String(availDate.getMonth() + 1).padStart(2, '0');
+      const ad = String(availDate.getDate()).padStart(2, '0');
+      const daysLeft = Math.ceil((availDate - today) / (1000 * 60 * 60 * 24));
+      availableHtml = `<div class="avail-notice">⏰ 자기계발비 사용 가능일: <strong>${ay}.${am}.${ad}</strong> (${daysLeft}일 후)</div>`;
+    }
+  }
+
+  // ── 비고 표시 ──
+  const noteHtml = d.note ? `<div class="result-note">📌 ${d.note}</div>` : '';
+
+  resultCard.innerHTML = `
+    <div class="result-header">
+      <div>
+        <div class="result-name">${d.dept}</div>
+        <div class="result-meta">${d.rank}</div>
+      </div>
+      <div class="result-badge">${d.id}</div>
+    </div>
+
+    ${availableHtml}
+
+    <div class="balance-highlight">
+      <div class="balance-label">현재 잔액</div>
+      <div class="balance-amount ${balanceClass}">${fmt(d.balance)}</div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-item">
+        <div class="stat-label">직급별 자기계발비</div>
+        <div class="stat-value">${fmt(d.limit)}</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-label">실지급액</div>
+        <div class="stat-value">${fmt(d.paid)}</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-label">총 사용액</div>
+        <div class="stat-value">${fmt(d.used)}</div>
+      </div>
+    </div>
+
+    <div class="usage-bar-wrap">
+      <div class="usage-bar-label">
+        <span>사용률 ${usedPct}%</span>
+        <span>잔여 ${100-usedPct}%</span>
+      </div>
+      <div class="usage-bar-track">
+        <div class="usage-bar-fill" style="width:${usedPct}%; background: ${usedPct > 70 ? 'var(--warning)' : 'var(--accent)'}"></div>
+      </div>
+    </div>
+
+    <div class="monthly-section">
+      <div class="monthly-title">월별 사용 내역</div>
+      <div class="monthly-grid">${monthlyHtml}</div>
+    </div>
+
+    ${noteHtml}
+  `;
+}
+</script>
+</body>
+</html>

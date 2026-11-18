@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>자기계발비 잔액 조회</title>
+<title>AI자기계발비 잔액 조회</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -313,6 +313,24 @@
     color: #B45309;
   }
 
+  /* 업데이트 안내 배너 */
+  .update-notice {
+    background: #F0F4FF;
+    border: 1px solid #C7D4F8;
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 12.5px;
+    color: #3D4A6B;
+    line-height: 1.7;
+    max-width: 480px;
+    width: 100%;
+    margin-bottom: 20px;
+    text-align: left;
+  }
+  .update-notice strong {
+    color: #2D5BE3;
+  }
+
   @media (max-width: 480px) {
     body { padding: 32px 12px; }
     .card, .result-card, .sheet-setup { padding: 24px 20px; }
@@ -325,11 +343,14 @@
 
 <div class="header">
   <div class="header-label">동아사이언스 · 인재지원팀</div>
-  <h1>자기계발비 잔액 조회</h1>
-  <p>사번과 입사일을 입력하시면<br>2026년 자기계발비 현황을 확인하실 수 있습니다.</p>
+  <h1>AI자기계발비 잔액 조회</h1>
+  <p>사번과 입사일을 입력하시면<br>2026년 AI자기계발비 현황을 확인하실 수 있습니다.</p>
 </div>
 
-
+<div class="update-notice">
+  📅 AI자기계발비 잔액은 매월 1회 업데이트 됩니다. (실시간 반영 아님)<br>
+  현재 표시되는 잔액은 <strong>전월까지 사용한 AI자기계발비를 반영한 잔액</strong>입니다.
+</div>
 
 <!-- 조회 카드 -->
 <div class="card">
@@ -349,7 +370,7 @@
 <!-- 결과 카드 -->
 <div class="result-card" id="resultCard"></div>
 
-<div class="footer">자기계발비 관련 문의사항은 재무팀에 문의주세요.</div>
+<div class="footer">AI자기계발비 관련 문의사항은 재무팀에 문의주세요.</div>
 
 <script>
 const SHEET_URL = 'https://script.google.com/macros/s/AKfycbyfDdkdavSn6ncOKQCyZ5125q5ILIbazjU4aclNvWrr1nKX_Y1SEEKdbaNP9KoyTfY7/exec';
@@ -454,7 +475,7 @@ function renderResult(d) {
       const am = String(availDate.getMonth() + 1).padStart(2, '0');
       const ad = String(availDate.getDate()).padStart(2, '0');
       const daysLeft = Math.ceil((availDate - today) / (1000 * 60 * 60 * 24));
-      availableHtml = `<div class="avail-notice">⏰ 자기계발비 사용 가능일: <strong>${ay}.${am}.${ad}</strong> (${daysLeft}일 후)</div>`;
+      availableHtml = `<div class="avail-notice">⏰ AI자기계발비 사용 가능일: <strong>${ay}.${am}.${ad}</strong> (${daysLeft}일 후)</div>`;
     }
   }
 
@@ -479,11 +500,11 @@ function renderResult(d) {
 
     <div class="stats-grid">
       <div class="stat-item">
-        <div class="stat-label">직급별 자기계발비</div>
+        <div class="stat-label">직급별 AI자기계발비 <span style="font-size:11px;color:var(--text-muted);font-weight:400">(연초 기준)</span></div>
         <div class="stat-value">${fmt(d.limit)}</div>
       </div>
       <div class="stat-item">
-        <div class="stat-label">실지급액</div>
+        <div class="stat-label">실지급액 <span style="font-size:11px;color:var(--text-muted);font-weight:400">(변동사유는 하단에 표시)</span></div>
         <div class="stat-value">${fmt(d.paid)}</div>
       </div>
       <div class="stat-item">
